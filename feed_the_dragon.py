@@ -80,6 +80,7 @@ coin_rect.center = (WINDOW_WIDTH + BUFFER_DISTANCE, random.randint(64, WINDOW_HE
 
 
 #The main game loop
+pygame.mixer.music.play(-1, 0.0)
 running = True
 while running:
     for event in pygame.event.get():
@@ -88,7 +89,7 @@ while running:
             running = False
 
     #Get a list of all keys currently being pressed down
-    #keys = pygame.key.get_pressed()   
+    keys = pygame.key.get_pressed()   
     
 
     #Move the dragon continously
@@ -96,17 +97,33 @@ while running:
     #    dragon_rect.x -= PLAYER_VELOCITY
     #if (keys[pygame.K_RIGHT] or keys[pygame.K_d]) and dragon_rect.right < WINDOW_WIDTH:
     #    dragon_rect.x += PLAYER_VELOCITY
-    #if (keys[pygame.K_UP] or keys[pygame.K_w]) and dragon_rect.top > 0:
-    #    dragon_rect.y -= PLAYER_VELOCITY
-    #if (keys[pygame.K_DOWN] or keys[pygame.K_s]) and dragon_rect.bottom < WINDOW_HEIGHT:
-    #    dragon_rect.y += PLAYER_VELOCITY
+    if keys[pygame.K_UP] and player_rect.top > 64:
+        player_rect.y -= PLAYER_VELOCITY
+    if keys[pygame.K_DOWN] and player_rect.bottom < WINDOW_HEIGHT:
+        player_rect.y += PLAYER_VELOCITY
 
+    #Move the coin
+    if coin_rect.x < 0:
+        #player missed coin
+        player_lives -= 1
+        miss_sound.play()
+        #place coin off the end of the screen again
+        coin_rect.x = WINDOW_WIDTH + BUFFER_DISTANCE
+        coin_rect.y = random.randint(64, WINDOW_HEIGHT - 32)
+    else:
+        coin_rect.x -= coin_velocity
+        #move hte coint
+    #Check for collison between player and coin
+    if player_rect.colliderect(coin_rect):
+        score += 1
+        coin_sound.play()
+        coin_velocity += COIN_ACCELERATION
+        coin_rect.x = WINDOW_WIDTH + BUFFER_DISTANCE
+        coin_rect.y = random.randint(64, WINDOW_HEIGHT - 32)
 
-    #Check for collission between two rects
-    #if dragon_rect.colliderect(coin_rect):
-    #    print("HIT")
-    #    coin_rect.left = random.randint(0, WINDOW_WIDTH - 48)
-    #    coin_rect.top = random.randint(0, WINDOW_HEIGHT - 48)
+    #update HUD
+    score_text = font.render('Score: ' + str(score), True, GREEN, DARKGREEN)
+    lives_text = font.render('Lives: ' + str(player_lives), True, GREEN, DARKGREEN)
 
     #Fill the display surface to cover old images
     display_surface.fill((0,0,0))
